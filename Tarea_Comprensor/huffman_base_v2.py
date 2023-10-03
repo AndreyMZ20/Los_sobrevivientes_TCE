@@ -112,10 +112,10 @@ if len(freq)==1:
 else:
     huffmanCode = huffman_code_tree(nodes[0][0])
 
-print(' Char | Huffman code ')
+print(' ASCII | Char | Huffman code ')
 print('----------------------')
 for (char, frequency) in freq:
-    print(' %-4r |%12s' % (char, huffmanCode[char]))
+    print(' %-5r | %-4r |%8s' % (char, chr(char), huffmanCode[char]))
 
 #-------------------PARTE1-----------------------
 
