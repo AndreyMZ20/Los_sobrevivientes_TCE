@@ -9,8 +9,6 @@ file_full_path = ""
 file_split_path = [];
 def myfunc(argv):
     global file_full_path, file_split_path
-    arg_output = ""
-    arg_user = ""
     arg_help = "{0} -i <input>".format(argv[0])
     
     try:
@@ -43,7 +41,6 @@ recovered_path = os.path.join(file_split_path[0], "recovered_"+file_split_path[1
 string=[];
 with open(file_full_path, "rb") as f:
     while (byte := f.read(1)):
-        # Do stuff with byte.
         int_val = int.from_bytes(byte, "big")
         string.append(int_val)
 
@@ -67,13 +64,11 @@ def insert_in_tree(raiz, ruta, valor):
             raiz.right = valor;
     else:
         if(ruta[0]=='0'):
-            #if type(raiz.left) is int:
             if(raiz.left==None):
                 raiz.left = NodeTree(None,None);
             ruta = ruta[1:];
             insert_in_tree(raiz.left,ruta,valor);
         else:
-            #if type(raiz.right) is int:
             if(raiz.right==None):
                 raiz.right = NodeTree(None,None);
             ruta = ruta[1:];
@@ -89,7 +84,6 @@ def huffman_code_tree(node, left=True, binString=''):
     d.update(huffman_code_tree(l, True, binString + '0'))
     d.update(huffman_code_tree(r, False, binString + '1'))
     return d
-    
 
 # calculo de frecuencias y probabilidades
 prob_unit = 1/len(string)
@@ -101,7 +95,7 @@ for c in string:
         freq[c] = prob_unit
 
 freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)
- 
+
 nodes = freq
 
 while len(nodes) > 1:
@@ -113,7 +107,7 @@ while len(nodes) > 1:
     #print(nodes)
     nodes = sorted(nodes, key=lambda x: x[1], reverse=True)
 
-if(len(freq)==1):
+if len(freq)==1:
     huffmanCode= {freq[0][0]: '1'}
 else:
     huffmanCode = huffman_code_tree(nodes[0][0])
@@ -154,7 +148,7 @@ print("Eficiencia de la codificación de huffman", eficiencia_huffman)
 #-------------------PARTE2-----------------------
 
 #creacion del archivo comprimido
-binary_string = [] #string binario
+binary_string = []
 for c in string :
     binary_string += huffmanCode [ c ]
 
@@ -168,18 +162,12 @@ byte_string ="". join ([ str( i ) for i in binary_string ])
 
 byte_string =[ byte_string [ i : i +8] for i in range (0 , len( byte_string ), 8) ]
 
-#que hace el codigo anterior?
-#1. se crea un string binario con la codificacion de huffman
-#2. se calcula el numero de bits que tiene el string binario
-#3. se calcula el numero de bytes que tiene el string binario
-#4. se crea un string binario de bytes
 
-#Convierta los datos comprimidos en una lista de datos tipo byte
 byte_array = []
 for byte in byte_string:
     byte_array.append(int(byte,2))
 
-#Escriba los datos comprimidos en un archivo binario
+#Escribe los datos comprimidos en un archivo binario
 with open(file_huffman_comprimido, "wb") as f:
     f.write(bytearray(byte_array))
 
@@ -205,8 +193,6 @@ print("-----------------------------------------------------")
 
 #-------------------Descompresion-de-datos----------------------------------
 
-
-
 csvfile = open ( ruta_diccionario , 'r')
 reader = csv . reader ( csvfile )
 bits_a_leer = None ;
@@ -226,18 +212,16 @@ nodo = Decoding;
 data_estimated = [];
 for i in range(compressed_length_bit): 
   (l , r ) = nodo . children () ; #Extraer los nodos hijos del nodo actual
-  #print ([i, binary_string [i]]) 
+
   if (binary_string [i]=='1'): #Ir al siguiente nodo según el bit de dato
     nodo = r;
   else:
     nodo = l;
-  if type(nodo) is int: #Bottom of the tree
+  if type(nodo) is int:
     data_estimated.append(nodo) #Extraer el dato parado en el nodo 
-    #print ([i, nodo]) 
+
     nodo = Decoding; # Para voler a empezar con el siguiente dato
     
 #Escribir los datos descomprimidos en un archivo binario
 with open(recovered_path, "wb") as f:
     f.write(bytearray(data_estimated))
-
-
