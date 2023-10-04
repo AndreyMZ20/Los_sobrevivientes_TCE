@@ -26,7 +26,6 @@ def myfunc(argv):
             file_split_path = os.path.normpath(file_full_path)
             file_split_path = os.path.split(file_split_path)
 
-
 if __name__ == "__main__":
     myfunc(sys.argv)
 
@@ -222,6 +221,6 @@ for i in range(compressed_length_bit):
 
     nodo = Decoding; # Para voler a empezar con el siguiente dato
     
-#Escribir los datos descomprimidos en un archivo binario
+#Escribir los datos descomprimidos en un archivo texto
 with open(recovered_path, "wb") as f:
     f.write(bytearray(data_estimated))
