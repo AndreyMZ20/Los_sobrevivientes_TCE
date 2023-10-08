@@ -42,6 +42,7 @@ def compress_file(file_full_path):
         nodes.append((node, c1 + c2))
         nodes = sorted(nodes, key=lambda x: x[1], reverse=True)
 
+    # Toma en cuenta si la frecuencia es cero
     huffmanCode = huffman_code_tree(nodes[0][0]) if len(freq) > 1 else {freq[0][0]: '1'}
 
     # Imprimir la tabla de códigos de Huffman
