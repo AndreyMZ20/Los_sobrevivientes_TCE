@@ -1,0 +1,7 @@
+import random
+
+def generar_numero_aleatorio():
+    numero = random.getrandbits(32)
+    return str(numero)
+
+print(generar_numero_aleatorio())
