@@ -1,7 +1,5 @@
-import random
+def generar_cadena_binaria():
+    cadena = ''.join(['1' if i % 2 == 0 else '0' for i in range(32)])
+    return cadena
 
-def generar_numero_aleatorio():
-    numero = random.getrandbits(32)
-    return str(numero)
-
-print(generar_numero_aleatorio())
+print(generar_cadena_binaria())
