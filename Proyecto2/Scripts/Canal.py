@@ -58,4 +58,3 @@ plt.ylabel('Amplitud')
 plt.title('Señal de Coseno Elevado con ruido/eco')
 plt.grid(True)
 plt.show()
-
