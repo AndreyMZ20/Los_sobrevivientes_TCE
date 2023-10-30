@@ -9,52 +9,53 @@ def canal(signal, num_puntos, t):
         senal_con_ruido = signal + ruido
         return senal_con_ruido
     else:
-        eco = signal
         cantidadEco = int(input("Cantidad de eco: "))
-        senal_resultante = np.zeros(num_puntos)
-        retraso = 0
+        ecos = []
+        atraso = 0
+        senal_con_eco = np.copy(signal)
         for amp in range(cantidadEco):
-            retraso = 0.2+retraso
-            print("Retraso: ", retraso)
-            amplitudEco = float(input("Amplitud de eco: "))
-            eco = np.roll(signal, int(retraso * num_puntos)) * amplitudEco + signal
-            senal_con_eco = cosine_signal + eco
-            senal_resultante += senal_con_eco
-        return senal_resultante
+            atraso += 0.2
+            amplitud = float(input("Amplitud de eco: "))
+            eco = np.roll(signal, int(atraso * num_puntos)) * amplitud
+            eco[:int(atraso * num_puntos)] = 0
+            ecos.append(eco)
+            senal_con_eco += eco
+            plt.plot(t,eco, label="Eco" + str(amp))
+            plt.xlabel('Tiempo')
+            plt.ylabel('Amplitud')
+            plt.title('Señal de Coseno Elevado')
+            plt.grid(True)
+            plt.legend() 
+        plt.show()
+        return senal_con_eco
 
-amplitud = 1.0  # Amplitud del coseno elevado
-periodo = 100  # Período de la señal
-alfa = 0.5     # Factor de forma del coseno elevado
+#Para simular una señal de cosenos alzados 
 
-# Número de puntos en la señal
+A = 1          # Amplitud
+n = 4          # Exponente
+f = 1          # Frecuencia en Hz
+phi = 0        # Fase
 num_puntos = 1000
-
-# Crear un vector de tiempo
-t = np.linspace(0, 1, num_puntos)
+# Tiempo
+t = np.linspace(0, 2, num_puntos)  # Generar valores de tiempo de 0 a 2 segundos
 
 # Generar la señal de coseno elevado
-cosine_signal = amplitud * np.cos(2 * np.pi / periodo * t) * np.sinc(alfa * (t - 0.5 * periodo))
+cosine_signal = A * np.cos(2 * np.pi * f * t + phi)**n
 
+noised_signal= canal(cosine_signal, num_puntos, t)
 
-
-noisedSignal = canal(cosine_signal, num_puntos, t)
-
-print("Original: ",cosine_signal)
-print("Con ruido: ",noisedSignal)
-
-
-plt.subplot(1, 2, 1)
-plt.plot(t, cosine_signal)
+plt.subplot(2, 1, 1)
+plt.plot(t,cosine_signal)
 plt.xlabel('Tiempo')
 plt.ylabel('Amplitud')
 plt.title('Señal de Coseno Elevado')
 plt.grid(True)
 
-plt.subplot(1, 2, 2)
-plt.plot(t, noisedSignal)
+plt.subplot(2, 1, 2)
+plt.plot(t,noised_signal)
 plt.xlabel('Tiempo')
 plt.ylabel('Amplitud')
-plt.title('Señal de Coseno Elevado con Ruido')
+plt.title('Señal de Coseno Elevado con ruido/eco')
 plt.grid(True)
 plt.show()
 
