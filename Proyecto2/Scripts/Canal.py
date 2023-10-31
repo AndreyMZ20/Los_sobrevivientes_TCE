@@ -2,20 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def canal(signal, num_puntos, t):
-    entrada = int(input("1. Ruido\n2.Eco\n"))
+    entrada = int(input("1. Ruido\n2.Eco\n\nOpcion: "))
     if(entrada == 1):
         amplitud_ruido = float(input("Nivel de ruido: "))
         ruido = amplitud_ruido * np.random.randn(len(t))
         senal_con_ruido = signal + ruido
         return senal_con_ruido
     else:
-        cantidadEco = int(input("Cantidad de eco: "))
+        cantidadEco = int(input("\nCantidad de ecos: "))
         ecos = []
         atraso = 0
         senal_con_eco = np.copy(signal)
         for amp in range(cantidadEco):
             atraso += 0.2
-            amplitud = float(input("Amplitud de eco: "))
+            amplitud = float(input("Amplitud de eco "+str(amp+1)+": "))
             eco = np.roll(signal, int(atraso * num_puntos)) * amplitud
             eco[:int(atraso * num_puntos)] = 0
             ecos.append(eco)
