@@ -28,7 +28,7 @@ def codificar_manchester(binario):
     plt.show()
 
 # Generar una cadena binaria usando la función generar_cadena_binaria
-cadena_binaria = generar_cadena_binaria()
-
+#cadena_binaria = generar_cadena_binaria()
+cadena_binaria = "11"
 # Codificar y mostrar la señal Manchester
 codificar_manchester(cadena_binaria)
