@@ -1,6 +1,6 @@
-import matplotlib.pyplot as plt
-from scipy.signal import rcosdesign, convolve
 import numpy as np
+import matplotlib.pyplot as plt
+from rcosdesign import rcosdesign
 
 def generar_cadena_binaria():
     cadena = ''.join(['1' if i % 2 == 0 else '0' for i in range(32)])
@@ -22,57 +22,49 @@ def codificar_manchester(binario):
 
     return tiempo, señal
 
-def rz_encoder(binary_string):
-    rz_signal = []
+# Parámetros del pulso de coseno alzado
+Ts = 1
+L = 16
+a_values = [1e-6, 0.25, 0.75, 1.0]
+t = np.arange(-3, 3 + Ts / L, Ts / L)
 
-    for bit in binary_string:
-        if bit == "0":
-            rz_signal.extend([0, 0])
-        else:
-            rz_signal.extend([1, 0])
+# Crear una nueva figura para el gráfico del pulso de coseno alzado
+plt.figure()
 
-    return rz_signal
+# Iterar a través de los valores de a para el pulso de coseno alzado
+for a in a_values:
+    pt = rcosdesign(a, 6, L, 'normal')
+    plt.plot(t, pt, label=f'a = {a}')  # Usar el valor de a como etiqueta
 
-def nrz_encode(bit_string):
-    mapping = {'0': -1, '1': 1}
-    nrz_encoded = [mapping[bit] for bit in bit_string]
-    return nrz_encoded
-
-def aplicar_coseno_alzado(señal, duracion_bit, frecuencia_muestreo, rolloff=0.2):
-    filtro_coseno_alzado = rcosdesign(rolloff, int(1 / (2 * duracion_bit)), int(1 / frecuencia_muestreo))
-    señal_coseno_alzado = convolve(señal, filtro_coseno_alzado, mode='same')
-    tiempo_coseno = np.linspace(0, len(señal_coseno_alzado) / frecuencia_muestreo, len(señal_coseno_alzado))
-    return tiempo_coseno, señal_coseno_alzado
+plt.grid(True)
+plt.xlabel('Tiempo')
+plt.ylabel('Amplitud')
+plt.title('Pulso de Coseno Alzado')
+plt.legend()
 
 # Generar una cadena binaria usando la función generar_cadena_binaria
 cadena_binaria = generar_cadena_binaria()
 
-# Selecciona la codificación deseada (Manchester, NRZ o RZ)
-codificacion_deseada = "Manchester"  # Cambiar a "NRZ" o "RZ" según sea necesario
+# Codificar la señal Manchester
+tiempo_manchester, señal_manchester = codificar_manchester(cadena_binaria)
 
-# Codificar la señal según la codificación deseada
-if codificacion_deseada == "Manchester":
-    tiempo, señal = codificar_manchester(cadena_binaria)
-elif codificacion_deseada == "NRZ":
-    tiempo = list(range(len(cadena_binaria)))
-    señal = nrz_encode(cadena_binaria)
-elif codificacion_deseada == "RZ":
-    tiempo = list(range(len(cadena_binaria) * 2))
-    señal = rz_encoder(cadena_binaria)
-
-# Parámetros de la señal de coseno alzado
-duracion_bit = 0.5  # Duración de cada bit en segundos
-frecuencia_muestreo = 1000  # Frecuencia de muestreo en Hz
-rolloff = 0.2  # Factor de roll-off del filtro de coseno alzado
-
-# Aplicar el coseno alzado a la señal
-tiempo_coseno, señal_coseno_alzado = aplicar_coseno_alzado(señal, duracion_bit, frecuencia_muestreo, rolloff)
-
-# Graficar la señal de coseno alzado
-plt.plot(tiempo_coseno, señal_coseno_alzado)
-plt.xlabel("Tiempo (s)")
-plt.ylabel("Amplitud")
-plt.title(f"Señal de Coseno Alzado ({codificacion_deseada})")
+# Crear una nueva figura para el gráfico de la codificación Manchester
+plt.figure()
+plt.plot(tiempo_manchester, señal_manchester)
 plt.grid(True)
+plt.xlabel('Tiempo')
+plt.ylabel('Amplitud')
+plt.title('Codificación Manchester')
+
+# Aplicar el pulso de coseno alzado a la señal Manchester
+señal_coseno_alzado = np.convolve(señal_manchester, pt, mode='same')
+
+# Crear una nueva figura para el gráfico de la señal con el coseno alzado
+plt.figure()
+plt.plot(tiempo_manchester, señal_coseno_alzado)
+plt.grid(True)
+plt.xlabel('Tiempo')
+plt.ylabel('Amplitud')
+plt.title('Señal con Pulso de Coseno Alzado')
+
 plt.show()
-  
