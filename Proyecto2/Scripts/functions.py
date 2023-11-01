@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+import numpy as np
 
 def encode(bit_string, encoder_type):
     # Convierte el string hexadecimal en un string binario
@@ -8,7 +9,6 @@ def encode(bit_string, encoder_type):
     if encoder_type == 'RZ (Return-to-zero)':
         mapping = {'0': [0, 0], '1': [1, 0]}
         signal = [level for bit in bit_string for level in mapping[bit]]
-        print("RATATATATATATTAATAAAAAAAAAAAAAAAAAA")
         plot_rz(signal, bit_string)
         return signal, bit_string
     elif encoder_type == 'Manchester':
@@ -74,6 +74,25 @@ def plot_manchester(signal, bit_string):
 def hex_to_bin(hex_string):
     bin_string = bin(int(hex_string, 16))[2:]
     return bin_string.zfill(4 * len(hex_string))  # Asegura que el string binario tenga una longitud múltiplo de 4
+
+def raised_cosine(signal, T=1, alpha=0.5):
+    # Genera el tiempo de muestreo
+    t = np.linspace(-T/2, T/2, 500)
+
+    # Genera el coseno alzado
+    cos_t = [0.5 * (1 + np.cos(np.pi * t_ / (alpha * T))) if abs(t_) <= alpha * T else 0 for t_ in t]
+
+    # Aplica el coseno alzado a la señal
+    raised_signal = [s * cos_t for s in signal]
+
+    # Grafica la señal
+    plt.figure(figsize=(10, 4))
+    plt.plot(raised_signal)
+    plt.title('Señal con Coseno Alzado')
+    plt.grid(True)
+    plt.show()
+
+    return raised_signal
 
 def hex_to_kivy_color(hex_color):
     # Convertir el color hexadecimal a RGB

@@ -12,8 +12,11 @@ from kivy.uix.widget import Widget
 from kivy.clock import Clock
 from kivy.uix.slider import Slider
 from kivy.uix.label import Label
+from kivy.lang import Builder
 from functions import *
 import random
+
+Builder.load_file('slider_cusm.kv')
 
 #------------------ CLASE CUADRO TITULO ------------------#
 class TopFrame(BoxLayout):
@@ -60,7 +63,7 @@ class input_class(BoxLayout):
     def __init__(self, **kwargs):
         super(input_class, self).__init__(**kwargs)
         self.orientation = 'vertical'
-        kivy_color = hex_to_kivy_color('0B5345')
+        kivy_color = hex_to_kivy_color('154360')
         with self.canvas.before:
             Color(*kivy_color)  # Fondo personalizado
             self.rect = Rectangle(size=self.size, pos=self.pos)
@@ -141,10 +144,13 @@ class Cod_Binaria(BoxLayout):
             # Crear un CheckBox y un Label para cada opción
             if opcion == 'RZ (Return-to-zero)':
                 checkbox = CheckBox(group='group', active=True)
+                checkbox.bind(active=self.on_checkbox_active)  # Agregar un enlace al evento 'active'
             elif opcion == 'NRZ (Non-Return to Zero)':
                 checkbox = CheckBox(group='group', active=True)  # Este CheckBox estará activo al inicio
+                checkbox.bind(active=self.on_checkbox_active)  # Agregar un enlace al evento 'active'
             else:
                 checkbox = CheckBox(group='group')
+                checkbox.bind(active=self.on_checkbox_active)  # Agregar un enlace al evento 'active'
             
             label = Label(text=opcion, halign='left', valign='middle')
             label.bind(size=label.setter('text_size'))  # Set 'text_size' to maintain the alignment
@@ -167,6 +173,11 @@ class Cod_Binaria(BoxLayout):
         # Agregar un Widget vacío debajo del GridLayout para moverlo hacia arriba
         self.add_widget(Widget(size_hint_y=0.5))
 
+    def on_checkbox_active(self, instance, value):
+        if not value:  # Si el CheckBox se desactivó
+            if not any(checkbox.active for checkbox in self.checkbox_dict):  # Si todos los CheckBoxes están desactivados
+                instance.active = True  # Volver a activar el CheckBox
+
     def update_rect(self, *args):
         self.rect.pos = self.pos
         self.rect.size = self.size
@@ -180,7 +191,7 @@ class RCC(BoxLayout):
     def __init__(self, **kwargs):
         super(RCC, self).__init__(**kwargs)
         self.orientation = 'vertical'
-        kivy_color = hex_to_kivy_color('154360')
+        kivy_color = hex_to_kivy_color('1C6F73')
         with self.canvas.before:
             Color(*kivy_color)  # Fondo personalizado
             self.rect = Rectangle(size=self.size, pos=self.pos)
@@ -215,17 +226,11 @@ class RCC(BoxLayout):
         self.rect.pos = self.pos
         self.rect.size = self.size
 
-
-
-
-
 #------------------ CLASE CANAL ------------------#
 class Canal(GridLayout):
     def __init__(self, **kwargs):
         super(Canal, self).__init__(**kwargs)
         self.cols = 1
-        #self.size_hint = (0.5, 0.5)  # Ajusta esto para cambiar el tamaño del cuadro
-        #self.pos_hint = {"top": 1, "right": 1}  # Ajusta esto para cambiar la posición del cuadro
         kivy_color = hex_to_kivy_color('841163')
         with self.canvas.before:
             Color(*kivy_color)  # Fondo personalizado
@@ -238,11 +243,12 @@ class Canal(GridLayout):
         # Nombres de las opciones
         opciones = ['RZ', 'NRZ', 'MCH']
         
-        # Agregar los botones de radio al GridLayout
+        # Agregar los Sliders al GridLayout
         for opcion in opciones:
             grid = GridLayout(cols=2)
             grid.add_widget(Label(text=opcion))
-            grid.add_widget(CheckBox(group='group'))
+            slider = MySlider(value_track=True, value_track_color=[1, 0, 0, 1])
+            grid.add_widget(slider)
             self.add_widget(grid)
 
     def update_rect(self, *args):
@@ -268,6 +274,8 @@ class BottomFrame(BoxLayout):
             active_label_text = self.checkbox_dict[active_checkbox].text if active_checkbox else None
             # Codifica el valor del textbox y traza la señal
             signal, bit_string = encode(textbox_value, active_label_text)
+            # Aplica el coseno alzado y grafica la señal
+            #raised_signal = raised_cosine(signal)
             print(signal)
             print(bit_string)
             #plot_signal(signal, bit_string)
