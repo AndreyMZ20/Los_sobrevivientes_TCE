@@ -1,0 +1,11 @@
+<AccordionItem>:
+    title_template: YourCustomLabel
+    YourCustomLabel:
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1 if self.parent.parent.select else (.7, .7, .7, 1)
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        padding: 30  # Ajusta el padding según tus necesidades
+        spacing: 30  # Ajusta el spacing según tus necesidades

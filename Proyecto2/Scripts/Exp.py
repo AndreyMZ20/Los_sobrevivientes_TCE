@@ -1,72 +1,36 @@
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.screenmanager import ScreenManager, Screen
-from matplotlib.figure import Figure
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
-import matplotlib.pyplot as plt
-import numpy as np
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
 
-class MainWindow(Screen):
-    def __init__(self, **kwargs):
-        super(MainWindow, self).__init__(**kwargs)
-        self.layout = BoxLayout(orientation='vertical')
-        self.button = Button(text='Abrir segunda ventana')
-        self.button.bind(on_release=self.change_to_second)
-        self.layout.add_widget(self.button)
-        self.add_widget(self.layout)
-
-    def change_to_second(self, value):
-        self.manager.current = 'second'
-
-class SecondWindow(Screen):
-    def __init__(self, **kwargs):
-        super(SecondWindow, self).__init__(**kwargs)
-        self.layout = BoxLayout(orientation='horizontal')
-        
-        # Columna izquierda
-        self.scrollview_left = ScrollView()
-        self.boxlayout_left = BoxLayout(orientation='vertical', size_hint_y=None)
-        self.boxlayout_left.bind(minimum_height=self.boxlayout_left.setter('height'))
-
-        # Columna derecha
-        self.scrollview_right = ScrollView()
-        self.boxlayout_right = BoxLayout(orientation='vertical', size_hint_y=None)
-        self.boxlayout_right.bind(minimum_height=self.boxlayout_right.setter('height'))
-
-        # Agregar gráficas de matplotlib a la columna izquierda
-        for i in range(2):
-            fig, ax = plt.subplots()
-            t = np.arange(0.0, 2.0, 0.01)
-            s = 1 + np.sin(2 * np.pi * t)
-            ax.plot(t, s)
-
-            self.boxlayout_left.add_widget(FigureCanvasKivyAgg(fig))
-
-        # Agregar gráficas de matplotlib a la columna derecha
-        for i in range(2):
-            fig, ax = plt.subplots()
-            t = np.arange(0.0, 2.0, 0.01)
-            s = 1 + np.sin(2 * np.pi * t)
-            ax.plot(t, s)
-
-            self.boxlayout_right.add_widget(FigureCanvasKivyAgg(fig))
-
-        # Agregar las columnas al layout principal
-        self.scrollview_left.add_widget(self.boxlayout_left)
-        self.scrollview_right.add_widget(self.boxlayout_right)
-        
-        self.layout.add_widget(self.scrollview_left)
-        self.layout.add_widget(self.scrollview_right)
-
-        self.add_widget(self.layout)
-
-class TestApp(App):
+class result(App):
     def build(self):
-        screen_manager = ScreenManager()
-        screen_manager.add_widget(MainWindow(name="main"))
-        screen_manager.add_widget(SecondWindow(name="second"))
-        return screen_manager
+        main_layout = BoxLayout(orientation='vertical', size_hint_y=0.15)
+        button_layout = BoxLayout(orientation='horizontal', size_hint_y=0.66)
+        self.modulation_button = Button(text='Modulación')
+        self.modulation_button.bind(on_press=self.on_modulation_press)
+        button_layout.add_widget(self.modulation_button)
+        button_layout.add_widget(Button(text='Canal'))
+        button_layout.add_widget(Button(text='Demodulación'))
+        main_layout.add_widget(button_layout)
 
-TestApp().run()
+        secondary_button_layout = BoxLayout(orientation='horizontal', size_hint_y=0.33, opacity=0)
+        self.symbol_encoding_button = Button(text='Codificación de Símbolo')
+        self.rcc_button = Button(text='RCC')
+        secondary_button_layout.add_widget(self.symbol_encoding_button)
+        secondary_button_layout.add_widget(self.rcc_button)
+        main_layout.add_widget(secondary_button_layout)
+
+        layout = BoxLayout(orientation='vertical')
+        layout.add_widget(main_layout)
+        layout.add_widget(Widget())  # Widget vacío para ocupar el espacio restante
+
+        return layout
+
+    def on_modulation_press(self, instance):
+        self.modulation_button.background_color = (1, 0, 0, 1)  # Cambia el color del botón a rojo
+        self.symbol_encoding_button.parent.opacity = 1  # Hace visible el botón 'Codificación de Símbolo'
+        self.rcc_button.parent.opacity = 1  # Hace visible el botón 'RCC'
+
+if __name__ == '__main__':
+    result().run()
