@@ -64,7 +64,6 @@ def canal_manual(signal,num_puntos,t):
 
 def ecos(signal,num_puntos,amplitud,grados_retraso):
     radianes_retraso = math.radians(grados_retraso)
-    print(radianes_retraso)
     atraso = ((radianes_retraso) / (2 * np.pi ))
     muestras_retraso = int(atraso * num_puntos)
     eco = np.roll(signal, muestras_retraso) * amplitud
