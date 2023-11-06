@@ -1,0 +1,11 @@
+<LoadingPopup>:
+    progress_bar: progress_bar  # Referencia al ProgressBar en Python
+
+    # Definir el grosor de la barra de progreso (ajusta el valor de height)
+    BoxLayout:
+        orientation: 'vertical'
+        ProgressBar:
+            id: my_progress_bar
+            height: 20  # Ajusta el grosor de la barra de progreso aquí
+        Label:
+            text: root.progress_label.text

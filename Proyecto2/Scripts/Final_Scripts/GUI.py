@@ -16,9 +16,19 @@ from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
 from kivy.core.window import Window
 from kivy.uix.accordion import Accordion, AccordionItem
+from kivy.uix.carousel import Carousel
+from kivy.uix.progressbar import ProgressBar
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas, NavigationToolbar2Kivy
 
-from functions import *
+from Functions import *
 import random
+
+# Window.size = (Window.width, Window.height)
+# Window.top = 0
+# Window.left = 0
+#Window.fullscreen = 'auto'
 
 #------------------ CLASE CUADRO TITULO ------------------#
 class TopFrame(BoxLayout):
@@ -26,7 +36,7 @@ class TopFrame(BoxLayout):
         super(TopFrame, self).__init__(**kwargs)
         self.size_hint_y = None
         self.height = 50  # Ajusta esto a la altura que desees para el marco superior
-        self.add_widget(Label(text='Baseband Digital Modem', font_size=35))
+        self.add_widget(Label(text='Baseband Digital Modem', bold=True, font_size=50))
 
 #------------------ CLASES DE ENTRADA ------------------#
 class HexInput(TextInput):
@@ -34,7 +44,8 @@ class HexInput(TextInput):
         super(HexInput, self).__init__(**kwargs)
         self.halign = 'center'
         self.multiline = False
-        self.height = 38  # Ajusta este valor según tus necesidades
+        self.height = 50  # Ajusta este valor según tus necesidades
+        self.font_size = 30
         self.size_hint_y = None
         self.size_hint_x = 0.5  # Ajusta este valor a 0.5 para que sea la mitad del ancho de su widget padre
         self.input_class_instance = input_class_instance  # Guarda la referencia al objeto input_class
@@ -72,7 +83,7 @@ class input_class(BoxLayout):
         self.bind(pos=self.update_rect, size=self.update_rect)
 
         # Agregar el label al BoxLayout
-        label1 = Label(text='STEP 1: String to transmit (Hexadecimal)', bold=True)
+        label1 = Label(text='STEP 1: String to transmit (Hexadecimal)', bold=True, font_size=34)
         label1.size_hint_y = None
         label1.height = 100  
         self.add_widget(label1)
@@ -84,12 +95,12 @@ class input_class(BoxLayout):
         self.add_widget(anchor_layout)
 
         # Agregar el Label para mostrar el valor binario
-        self.binary_label = Label(text='Welcome! Type the string to modulate', markup=True)
+        self.binary_label = Label(text='Welcome! Type the string to modulate', markup=True, font_size=28)
         self.add_widget(self.binary_label)
 
         # Agrega el botón al BoxLayout
         anchor_layout = AnchorLayout(anchor_x='center', anchor_y='center')
-        self.my_button = Button(text='Random number', size_hint_x=0.35, size_hint_y=0.55, background_normal='', background_color=(26/255.0, 119/255.0, 177/255.0, 1)) 
+        self.my_button = Button(text='Random number', size_hint_x=0.35, size_hint_y=0.55, background_normal='', background_color=(26/255.0, 119/255.0, 177/255.0, 1), font_size=28) 
         self.my_button.bind(on_press=self.generate_random_hex)  # Vincula la función generate_random_hex al botón
         anchor_layout.add_widget(self.my_button)
         self.add_widget(anchor_layout)
@@ -114,13 +125,13 @@ class Cod_Binaria(BoxLayout):
         self.bind(pos=self.update_rect, size=self.update_rect)
         
         # Agregar el label al GridLayout
-        label2 = Label(text='STEP 2: Symbol encoding', bold=True)
+        label2 = Label(text='STEP 2: Symbol encoding', bold=True, font_size=34)
         label2.size_hint_y = None
         label2.height = 100  # Asegúrate de que este valor sea el mismo que el anterior
         self.add_widget(label2)
         
         # Nombres de las opciones
-        opciones = ['RZ (Return-to-zero)', 'NRZ (Non-Return to Zero)', 'Manchester']
+        opciones = ['PRZ-AMI (Alter Zero Return Polar)', 'PNRZ (Polar Non-Return to Zero)', 'Manchester']
         
         # Crear un GridLayout para contener todos los pares de Label y CheckBox
         grid = GridLayout(cols=2, spacing=[-100,0])
@@ -130,14 +141,14 @@ class Cod_Binaria(BoxLayout):
 
         for opcion in opciones:
             # Crear un CheckBox y un Label para cada opción
-            if opcion == 'RZ (Return-to-zero)':
+            if opcion == 'PRZ-AMI (Alter Zero Return Polar)':
                 checkbox = CheckBox(group='group', active=True)
-            elif opcion == 'NRZ (Non-Return to Zero)':
+            elif opcion == 'PNRZ (Polar Non-Return to Zero)':
                 checkbox = CheckBox(group='group', active=False)  # Este CheckBox estará desactivado al inicio
             else:
                 checkbox = CheckBox(group='group', active=False)  # Este CheckBox estará desactivado al inicio
             
-            label = Label(text=opcion, halign='left', valign='middle')
+            label = Label(text=opcion, halign='left', valign='middle', font_size=28)
             label.bind(size=label.setter('text_size'))  # Set 'text_size' to maintain the alignment
             
             # Agregar el CheckBox y el Label al GridLayout
@@ -150,13 +161,13 @@ class Cod_Binaria(BoxLayout):
         # Crear un BoxLayout para centrar el GridLayout
         box = BoxLayout(orientation='horizontal')
         box.add_widget(grid)  # Agregar el GridLayout al BoxLayout
-        box.add_widget(Widget(size_hint_x=0.2))  # Widget vacío para ocupar espacio en la parte derecha
+        box.add_widget(Widget(size_hint_x=0.25))  # Widget vacío para ocupar espacio en la parte derecha
 
         # Agregar el BoxLayout al widget principal
         self.add_widget(box)
 
         # Agregar un Widget vacío debajo del GridLayout para moverlo hacia arriba
-        self.add_widget(Widget(size_hint_y=0.5))
+        #self.add_widget(Widget(size_hint_y=0.1))
 
     def update_rect(self, *args):
         self.rect.pos = self.pos
@@ -178,20 +189,20 @@ class RCC(BoxLayout):
         self.bind(pos=self.update_rect, size=self.update_rect)
 
         # Agregar el label al BoxLayout
-        label1 = Label(text='STEP 3: Root of raised cosines', bold=True)
+        label1 = Label(text='STEP 3: Root of raised cosines', bold=True, font_size=34)
         label1.size_hint_y = None
         label1.height = 100  
         self.add_widget(label1)
 
         # Agregar otro label justo arriba del Slider
-        self.add_widget(Label(text='Roll-off value:'))
+        self.add_widget(Label(text='Roll-off value:', font_size=32))
 
         # Agregar el Slider al BoxLayout
         slider = Slider(min=0, max=1, value=0.5, step=0.01)
         self.add_widget(slider)
 
         # Agregar un Label para mostrar el valor del Slider
-        self.roll_off_value = Label(text="{:.2f}".format(slider.value))
+        self.roll_off_value = Label(text="{:.2f}".format(slider.value), font_size=32)
         
         # Mover el Label que se actualiza con el Slider un poco más arriba
         self.roll_off_value.size_hint_y = None
@@ -352,14 +363,14 @@ class Canal(BoxLayout):
 
         # Crear un Slider y un Label para mostrar su valor
         self.slider = Slider(min=0, max=1, value=0, step=0.01)
-        self.slider_label = Label(text="0")
+        self.slider_label = Label(text="0", font_size=32)
         self.slider.bind(value=self.on_slider_value)
 
         # Crear un Label para mostrar el estado del CheckBox
-        self.checkbox_label = Label(text="Noise level:")
+        self.checkbox_label = Label(text="Noise level:", font_size=32)
 
         # Agregar el label al GridLayout
-        label2 = Label(text='STEP 4: Channel model', bold=True)
+        label2 = Label(text='STEP 4: Channel model', bold=True, font_size=34)
         label2.size_hint_y = None
         label2.height = 100  # Asegúrate de que este valor sea el mismo que el anterior
         self.add_widget(label2)
@@ -382,7 +393,7 @@ class Canal(BoxLayout):
                 checkbox = CheckBox(group='group1', active=False)  # Este CheckBox estará desactivado al inicio
                 checkbox.bind(active=self.on_checkbox_active)  # Agregar un enlace al evento 'active'
             
-            label = Label(text=opcion, halign='left', valign='middle')
+            label = Label(text=opcion, halign='left', valign='middle', font_size=28)
             label.bind(size=label.setter('text_size'))  # Set 'text_size' to maintain the alignment
             
             # Agregar el CheckBox y el Label al GridLayout
@@ -408,7 +419,7 @@ class Canal(BoxLayout):
 
         # Agrega el botón al BoxLayout
         anchor_layout = AnchorLayout(anchor_x='center', anchor_y='center')
-        self.my_button = Button(text='Advanced settings', size_hint_x=0.35, size_hint_y=0.9, background_normal='', background_color=(135/255.0, 65/255.0, 160/255.0, 1), opacity=0)
+        self.my_button = Button(text='Advanced settings', size_hint_x=0.35, size_hint_y=0.9, background_normal='', background_color=(135/255.0, 65/255.0, 160/255.0, 1), opacity=0, font_size=28)
         self.my_button.bind(on_press=self.on_button_press) 
         anchor_layout.add_widget(self.my_button)
         self.add_widget(anchor_layout)
@@ -458,7 +469,64 @@ class Canal(BoxLayout):
         self.rect.pos = self.pos
         self.rect.size = self.size
 
-#------------------ CLASE BOTON EJECUTAR------------------#       
+#------------------ CLASE BOTON EJECUTAR------------------# 
+class LoadingPopup(Popup):
+    def __init__(self, **kwargs):
+        super(LoadingPopup, self).__init__(**kwargs)
+        self.title = 'Processing...'
+        self.auto_dismiss = False
+        self.progress_bar = ProgressBar(max=100)
+        self.progress_bar.height = 30 
+        self.progress_label = Label(text="0%", halign='center', font_size=30)
+        self.content = RelativeLayout()
+        self.content.add_widget(self.progress_bar)
+        self.content.add_widget(self.progress_label)
+        
+        # Centra la barra de progreso en RelativeLayout
+        self.progress_bar.center_x = self.content.center_x
+        self.progress_bar.center_y = self.content.center_y
+        
+        # Centra el Label en RelativeLayout
+        self.progress_label.center_x = self.content.center_x
+        self.progress_label.center_y = self.content.center_y
+
+        self.size_hint = (0.4, 0.5)
+        self.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
+        self.messages = []
+        self.current_message = None
+
+    def set_messages(self, messages):
+        self.messages = messages
+
+    def start(self, tasks, endfunction):
+        self.open()
+        self.tasks = iter(tasks)
+        self.task_count = len(tasks)  # Almacena la longitud de las tareas
+        self.results = []
+        self.endfunction = endfunction
+        self.event = Clock.schedule_interval(self.next, 1 / 25.)
+
+    def next(self, dt):
+        try:
+            # Muestra el siguiente mensaje si hay mensajes disponibles
+            if self.messages:
+                self.current_message = self.messages.pop(0)
+                self.title = f'Processing... {self.current_message}'
+
+            # Ejecuta la siguiente tarea y almacena el resultado
+            task = next(self.tasks)
+            result = task(*self.results)
+            self.results.append(result)
+            # Actualiza la barra de progreso
+            self.progress_bar.value += 100 / self.task_count  # Usa la longitud almacenada
+            self.progress_label.text = f"{int(self.progress_bar.value)}%"
+            
+        except StopIteration:
+            # Si todas las tareas han terminado, cierra la ventana emergente
+            self.dismiss()
+            self.event.cancel()
+            self.endfunction(*self.results)
+
 class BottomFrame(BoxLayout):
     def __init__(self, main_app, input_class_instance, checkbox_codsimb, roll_off,  **kwargs):
         super(BottomFrame, self).__init__(**kwargs)
@@ -470,9 +538,12 @@ class BottomFrame(BoxLayout):
         self.roll_off = roll_off
         self.add_widget(Button(text='RUN', size_hint=(0.5, None), height=50,
                                background_normal='', background_color=(0.65, 0, 0, 1),
-                               on_press=self.on_button_press))
+                               on_press=self.on_button_press, font_size=30, bold=True))
 
     def on_button_press(self, instance):
+
+        #AQUI OCURRE TODA LA MAGIA
+
         textbox_value = self.input_class.hex_input.text
         if textbox_value == '':
             self.input_class.binary_label.text = '[color=ff0000]ERROR: No data available[/color]'
@@ -480,34 +551,113 @@ class BottomFrame(BoxLayout):
         else:
             active_checkbox = next((checkbox for checkbox in self.checkbox_codsimb if checkbox.active), None)
             if active_checkbox != None:
+                # Si la longitud de hex_string es impar, agrega un '0' a la izquierda
+                textbox_value = complete_byte(textbox_value)
+                # Obtiene el valor del roll-off
                 roll_off = float(self.roll_off.text)
+                # Obtiene el tipo de codificación de símbolos
                 tipo_cod_simb = self.checkbox_codsimb[active_checkbox].text if active_checkbox else None
+                # Convierte el string hexadecimal de la entrada en un string binario
+                bit_string = hex_to_bin(textbox_value)
+                bit_list = np.array([int(bit) for bit in bit_string]) #Convierte el string binario en una lista de bits
+                #Generar codificion de Reed-salamon
+                encoded_reedsolo = encode_with_reedsolo(textbox_value)
+                bit_reedsolo = hex_to_bin(encoded_reedsolo)
+                label_red = label_div_red(bit_reedsolo, bit_string)
+                bit_list_reedsolo = np.array([int(bit) for bit in bit_reedsolo]) #Convierte el string binario en una lista de bits
                 # Codifica el valor del textbox
-                signal, bit_string = encode(textbox_value, tipo_cod_simb)
+                signal = encode(bit_reedsolo, tipo_cod_simb)
+                signal_exp = encode(bit_string, tipo_cod_simb)
+                signal_array = np.array(signal)
                 # Aplica el coseno alzado
-                signal_rcc = cose_alzado_func(roll_off, signal)
-                # Abrir ventana de resultados
-                App.get_running_app().stop()  # Detiene la aplicación actual
-                result(self.main_app, signal, bit_string, tipo_cod_simb, signal_rcc).run()  # Ejecuta la nueva aplicación
+                signal_rcc = cose_alzado_func(roll_off, signal_exp)
+                #GENERAR SEÑALES
+                # Define las tareas que quieres ejecutar en el hilo secundariod
+                tasks = [
+                    lambda *args: graficar_bin(bit_string, "Input signal in bits"),
+                    lambda *args: generar_senal(bit_list, frecuencia_reloj = 100),
+                    lambda *args: graficar_tiempo(args[-1], "Input signal in time (clk = 100 Hz)"),  
+                    lambda *args: graficar_frecuencia(args[-2], "Input signal on frequency (clk = 100 Hz)"),
+                    lambda *args: plot_encod(signal, bit_reedsolo, bit_string, tipo_cod_simb),
+                    lambda *args: generar_senal(signal_array, frecuencia_reloj = 100),
+                    lambda *args: graficar_tiempo(args[-1], "Time-encoded signal (clk = 100 Hz)"),  
+                    lambda *args: graficar_frecuencia(args[-2], "Frequency-encoded signal (clk = 100 Hz)"),
+                    lambda *args: graficar_bin(bit_reedsolo, "Reed Code-Salamon Bits (n=5)", bit_string),
+                    lambda *args: generar_senal(bit_list_reedsolo, frecuencia_reloj = 100),
+                    lambda *args: graficar_tiempo(args[-1], "Reed Code-Salamon in time (clk = 100 Hz, n=5)"), 
+                    lambda *args: graficar_frecuencia(args[-2], "Reed Code-Salamon on frequency (clk = 100 Hz, n=5)"),
+                    lambda *args: graficar_rcc_time(signal_rcc, "Root of raised cosine in time"),  
+                    lambda *args: graficar_frecuencia(signal_rcc, "Root of raised cosine on frequency"),
+                ]
+
+                # Crea una instancia de LoadingPopup
+                self.popup = LoadingPopup()
+
+                # Define los mensajes que se mostrarán durante la carga
+                messages = [
+                    "Graphing binary representation...",
+                    "Generating binary input signal...",
+                    "Plotting signal over time with a 100Hz clock...",
+                    "Plotting signal on frequency with a 100Hz clock...",
+                    "Encoding the signal...",
+                    "Generating coded signal...",
+                    "Plotting time-coded signal with a 100Hz clock...",
+                    "Plotting frequency encoded signal with a 100Hz clock...",
+                    "Graphing roots of raised cosines in the time domain...",
+                    "Graphing roots of raised cosines in the frequency domain...",
+                ]
+
+                # Establecer los mensajes en la instancia de LoadingPopup
+                self.popup.set_messages(messages)
+
+                # Llamas al método start de LoadingPopup y le pasas las tareas y la función que quieres ejecutar cuando termine la carga
+                self.popup.start(tasks, lambda *results: self.load_graphics(label_red, *results))
+
             else:
                 self.input_class.binary_label.text = '[color=ff0000]ERROR: Select a binary encoder[/color]'
                 Clock.schedule_once(self.reset_label_text, 3)
+    
+    # Y finalmente defines el método load_graphics
+    def load_graphics(self, label_red, *results):
+        # Aquí va el código que quieres ejecutar mientras se muestra la barra de progreso
+        # Los resultados de las tareas están en la variable results
+        plot_bin_input, digital_signal, plot_tiempo_input, plot_frecuencia_input, plot_encod_bit, digital_signal, plot_tiempo_encod, plot_frecuencia_encod, plot_bin_red, digital_signal, plot_tiempo_red, plot_frecuencia_red, plot_tiempo_rcc, plot_frecuencia_rcc = results
+        self.result_screen = ResultScreen(self.main_app, self.input_class.binary_label, plot_bin_input, plot_tiempo_input, plot_frecuencia_input, plot_encod_bit, plot_tiempo_encod, plot_frecuencia_encod, plot_bin_red, plot_tiempo_red, plot_frecuencia_red, label_red, plot_tiempo_rcc, plot_frecuencia_rcc)
+        # Añade la pantalla de resultados al ScreenManager
+        self.main_app.manager.add_widget(self.result_screen)
+        # Cambia a la pantalla de resultados
+        self.main_app.manager.current = 'result'
+        # Elimina la pantalla de resultados del ScreenManager
+        self.main_app.manager.remove_widget(self.main_app.manager.get_screen('main'))
+        Window.raise_window()
 
     def reset_label_text(self, dt):
-        self.input_class.binary_label.text = '[color=ffffff]Type the string to modulate[/color]'
+        if self.input_class.hex_input.text == '':
+            self.input_class.binary_label.text = '[color=ffffff]Type the string to modulate[/color]'
 
-#------------------ CLASE RESULTADO ------------------#
-class result(App):
-    def __init__(self, main_app, signal, bit_string, tipo_cod_simb, signal_rcc, **kwargs):
-        super(result, self).__init__(**kwargs)
+#------------------ CLASE RESULTADO ------------------
+
+class ResultScreen(Screen):
+    def __init__(self, main_app, binary_label, plot_bin_input, plot_tiempo_input, plot_frecuencia_input, plot_encod_bit, plot_tiempo_encod, plot_frecuencia_encod, plot_bin_red, plot_tiempo_red, plot_frecuencia_red, label_red, plot_tiempo_rcc, plot_frecuencia_rcc, **kwargs):
+        super(ResultScreen, self).__init__(**kwargs)
+        self.name = 'result'
         self.main_app = main_app
-        self.signal = signal
-        self.bit_string = bit_string
-        self.tipo_cod_simb = tipo_cod_simb
         self.current_plot = None
-        self.signal_rcc = signal_rcc
+        self.binary_label = binary_label
+        self.plot_bin_input = plot_bin_input
+        self.plot_tiempo_input = plot_tiempo_input
+        self.plot_frecuencia_input = plot_frecuencia_input
+        self.plot_encod_bit = plot_encod_bit
+        self.plot_tiempo_encod = plot_tiempo_encod
+        self.plot_frecuencia_encod = plot_frecuencia_encod
+        self.plot_bin_red = plot_bin_red
+        self.plot_tiempo_red = plot_tiempo_red
+        self.plot_frecuencia_red = plot_frecuencia_red
+        self.label_red = label_red
+        self.plot_tiempo_rcc = plot_tiempo_rcc
+        self.plot_frecuencia_rcc = plot_frecuencia_rcc
 
-    def build(self):
+
         root = BoxLayout(orientation='horizontal')
 
         menu = Accordion(orientation='vertical', size_hint_x=0.2)
@@ -535,6 +685,17 @@ class result(App):
         item_result.background_normal = 'mod_color.png'
         item_result.background_selected = 'mod_color.png'
         submenu_result = GridLayout(cols=1)
+        kivy_color = hex_to_kivy_color('2E52B5')
+        submenu_result.add_widget(Button(   text='Input',
+                                            on_press=lambda instance: self.plot_bit_string(instance, 'Modulation'),
+                                            size_hint_y=None,
+                                            height=40,
+                                            background_normal='', background_color=kivy_color))
+        submenu_result.add_widget(Button(   text='Reed-Solomon Coding',
+                                            on_press=lambda instance: self.plot_cod_red(instance, 'Modulation'),
+                                            size_hint_y=None,
+                                            height=40,
+                                            background_normal='', background_color=kivy_color))
         kivy_color = hex_to_kivy_color('2E52B5')
         submenu_result.add_widget(Button(   text='Symbol Encoding',
                                             on_press=lambda instance: self.plot_cod_simb(instance, 'Modulation'),
@@ -621,46 +782,87 @@ class result(App):
         self.title_label = Label(text='General Results', size_hint=(1, 0.1), halign='center', font_size=30)
         self.plot_area.add_widget(self.title_label)
 
-        return root
+        #Carousel
+        self.carousel = Carousel(direction='right')
+        self.plot_area.add_widget(self.carousel)
+
+        self.add_widget(root)
 
     def plot(self, instance, menu_name):
         self.title_label.text =menu_name + '\n' + instance.text
         plt.plot([1, 2, 3, 4, 5], [1, 3, 2, 4, 3])
         self.plot_area.add_widget(FigureCanvasKivyAgg(plt.gcf()))
-    
-    def plot_cod_simb(self, instance, menu_name):
-        self.title_label.text =menu_name + '\n' + instance.text
+
+    def plot_bit_string(self, instance, menu_name):
+        self.title_label.text =menu_name + ': ' + instance.text + '\n' + self.binary_label.text
         if self.current_plot:
             self.plot_area.remove_widget(self.current_plot)
+        # Elimina todos los widgets anteriores del Carousel
+        self.carousel.clear_widgets()    
+        #Graficar señal representacion bits
+        self.carousel.add_widget(self.plot_bin_input)
+        #Graficar señal digital en el tiempo
+        self.carousel.add_widget(self.plot_tiempo_input)
+        # #Graficar señal digital en la frecuencia
+        self.carousel.add_widget(self.plot_frecuencia_input)
 
-        if self.tipo_cod_simb == 'RZ (Return-to-zero)':
-            plot_rz(self, self.signal, self.bit_string)
-        elif self.tipo_cod_simb == 'NRZ (Non-Return to Zero)':
-            plot_nrz(self, self.signal, self.bit_string)
-        else:
-            plot_manchester(self, self.signal, self.bit_string)
+    def plot_cod_red(self, instance, menu_name):
+        self.title_label.text =menu_name + ': ' + instance.text + '\n' + self.label_red
+        if self.current_plot:
+            self.plot_area.remove_widget(self.current_plot)
+        # Elimina todos los widgets anteriores del Carousel
+        self.carousel.clear_widgets()    
+        #Graficar señal representacion bits
+        self.carousel.add_widget(self.plot_bin_red)
+        #Graficar señal digital en el tiempo
+        self.carousel.add_widget(self.plot_tiempo_red)
+        # #Graficar señal digital en la frecuencia
+        self.carousel.add_widget(self.plot_frecuencia_red)
+
+    def plot_cod_simb(self, instance, menu_name):
+        self.title_label.text =menu_name + ': ' + instance.text + '\n' + self.label_red
+        if self.current_plot:
+            self.plot_area.remove_widget(self.current_plot)
+        # Elimina todos los widgets anteriores del Carousel
+        self.carousel.clear_widgets()
+        #Graficar señal representacion bits
+        self.carousel.add_widget(self.plot_encod_bit)
+        #Graficar señal digital en el tiempo
+        self.carousel.add_widget(self.plot_tiempo_encod)
+        # #Graficar señal digital en la frecuencia
+        self.carousel.add_widget(self.plot_frecuencia_encod)
 
     def plot_rcc(self, instance, menu_name):
-        self.title_label.text =menu_name + '\n' + instance.text
+        self.title_label.text =menu_name + ': ' + instance.text + '\n' + self.label_red
         if self.current_plot:
             self.plot_area.remove_widget(self.current_plot)
-        graficar_rcc(self, self.signal_rcc)
+        # Elimina todos los widgets anteriores del Carousel
+        self.carousel.clear_widgets()
+        #Graficar señal rcc en el tiempo
+        self.carousel.add_widget(self.plot_tiempo_rcc)
+        # #Graficar señal rcc en la frecuencia
+        self.carousel.add_widget(self.plot_frecuencia_rcc)
 
     def on_back_button_press(self, instance):
-        App.get_running_app().stop()  # Detiene la aplicación actual
-        Class_Main().run()  # Crea una nueva instancia de la aplicación principal y la ejecuta
+
+        self.main = MainScreen()
+        # Añade la pantalla de resultados al ScreenManager
+        self.main_app.manager.add_widget(self.main)
+        # Cambia de vuelta a la pantalla principal
+        self.manager.current = 'main'
+        # Elimina la pantalla de resultados del ScreenManager
+        self.manager.remove_widget(self.manager.get_screen('result'))
 
     def on_save_button_press(self, instance):
         # Aquí es donde manejas lo que sucede cuando se presiona el botón 'Save all'
         pass
     
-
-
 #------------------ CLASE PRINCIPAL ------------------#
-class Class_Main(App):
-    def build(self):
-        self.title = 'Modem digital en banda base'
-
+class MainScreen(Screen):
+    def __init__(self, **kwargs):
+        super(MainScreen, self).__init__(**kwargs)
+        self.name = 'main'
+        
         layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         
         top_frame = TopFrame(size_hint=(1, 0.1), pos_hint={"top": 1})
@@ -682,12 +884,26 @@ class Class_Main(App):
         grid_layout.add_widget(widget4)
 
         layout.add_widget(grid_layout) 
-
+        
         bottom_frame = BottomFrame(main_app, widget1, widget2.checkbox_codsimb, widget3.roll_off_value, size_hint=(1, 0.1), pos_hint={"y": 0})
         layout.add_widget(bottom_frame)
 
-        return layout
+        self.add_widget(layout)
 
+class Class_Main(App):
+    def build(self):
+        self.title = 'Modem digital en banda base'
+        self.manager = ScreenManager()  # Haz que 'manager' sea un atributo de 'Class_Main'
+
+        # Crea la pantalla principal y añádela al ScreenManager
+        main_screen = MainScreen()
+        self.manager.add_widget(main_screen)
+
+        # Establece la pantalla principal como la pantalla predeterminada
+        self.manager.current = 'main'
+
+        return self.manager  # Devuelve 'self.manager' en lugar de 'sm'
+       
 if __name__ == '__main__':
     main_app = Class_Main()
     main_app.run()

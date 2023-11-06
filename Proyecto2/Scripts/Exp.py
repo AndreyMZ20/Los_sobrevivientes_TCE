@@ -1,36 +1,40 @@
-from kivy.app import App
-from kivy.uix.button import Button
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.widget import Widget
+from reedsolo import RSCodec
+import binascii
 
-class result(App):
-    def build(self):
-        main_layout = BoxLayout(orientation='vertical', size_hint_y=0.15)
-        button_layout = BoxLayout(orientation='horizontal', size_hint_y=0.66)
-        self.modulation_button = Button(text='Modulación')
-        self.modulation_button.bind(on_press=self.on_modulation_press)
-        button_layout.add_widget(self.modulation_button)
-        button_layout.add_widget(Button(text='Canal'))
-        button_layout.add_widget(Button(text='Demodulación'))
-        main_layout.add_widget(button_layout)
+def hex_to_bytes(hex_string):
+    return bytes.fromhex(hex_string)
 
-        secondary_button_layout = BoxLayout(orientation='horizontal', size_hint_y=0.33, opacity=0)
-        self.symbol_encoding_button = Button(text='Codificación de Símbolo')
-        self.rcc_button = Button(text='RCC')
-        secondary_button_layout.add_widget(self.symbol_encoding_button)
-        secondary_button_layout.add_widget(self.rcc_button)
-        main_layout.add_widget(secondary_button_layout)
+def bytes_to_hex(bytes_string):
+    return bytes_string.hex()
 
-        layout = BoxLayout(orientation='vertical')
-        layout.add_widget(main_layout)
-        layout.add_widget(Widget())  # Widget vacío para ocupar el espacio restante
+def encode_with_reedsolo(hex_string):
+    rs = RSCodec(5)
+    bytes_string = hex_to_bytes(hex_string)
+    encoded_bytes = rs.encode(bytes_string)
+    return bytes_to_hex(encoded_bytes)
 
-        return layout
+def decode_with_reedsolo(hex_string):
+    rs = RSCodec(5)
+    bytes_string = hex_to_bytes(hex_string)
+    decoded_bytes, _ = rs.decode(bytes_string)[:2]  # Tomar sólo los dos primeros elementos de la tupla
+    return bytes_to_hex(decoded_bytes)
 
-    def on_modulation_press(self, instance):
-        self.modulation_button.background_color = (1, 0, 0, 1)  # Cambia el color del botón a rojo
-        self.symbol_encoding_button.parent.opacity = 1  # Hace visible el botón 'Codificación de Símbolo'
-        self.rcc_button.parent.opacity = 1  # Hace visible el botón 'RCC'
+def bytes_to_string(bytes_string):
+    return bytes_string.decode('utf-8')
 
-if __name__ == '__main__':
-    result().run()
+# Ejemplo de uso
+hex_string = '68656c6c6f20776f726c64'  # 'hello world' en hexadecimal
+encoded = encode_with_reedsolo(hex_string)
+
+
+
+# Decodifica la cadena con error
+decoded = decode_with_reedsolo(encoded)
+
+# Convierte los bytes decodificados a una cadena de texto
+decoded_string = bytes_to_string(hex_to_bytes(decoded))
+
+print(f'Original: {hex_string}')
+print(f'Codificado: {encoded}')
+print(f'Decodificado: {decoded}')
+print(f'Cadena de texto decodificada: {decoded_string}')

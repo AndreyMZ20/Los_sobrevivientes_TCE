@@ -1,70 +1,82 @@
-from kivy.app import App
-from kivy.uix.button import Button
-from kivy.uix.boxlayout import BoxLayout
-from kivy.garden.navigationdrawer import NavigationDrawer
+# import numpy as np
+# import matplotlib.pyplot as plt
 
-class MyApp(App):
-    def build(self):
-        # Crear el NavigationDrawer
-        navigationdrawer = NavigationDrawer()
+# # Parámetros del pulso
+# T = 0.5  # Duración del pulso
+# t = np.linspace(-3, 3, 1500, endpoint=False)
 
-        # Crear el menú principal
-        main_menu = BoxLayout(orientation='vertical')
-        modulacion_button = Button(text='Modulación',
-                                   size_hint_y=None,
-                                   height=40)
-        modulacion_button.bind(on_press=self.show_modulacion_options)
-        main_menu.add_widget(modulacion_button)
-        main_menu.add_widget(Button(text='Demodulación',
-                                    on_press=self.toggle_nav_drawer,
-                                    size_hint_y=None,
-                                    height=40))
+# # Generar dos pulsos rectangulares
+# pulso_rectangular1 = np.where((t >= -T/2) & (t <= T/2), 1, 0)
+# pulso_rectangular2 = np.where((t >= 2*T) & (t <= 3*T), 1, 0)
+# pulso_rectangular = pulso_rectangular1 + pulso_rectangular2
 
-        # Crear las opciones de 'Modulación'
-        self.modulacion_options = BoxLayout(orientation='vertical', size_hint_y=None)
-        self.modulacion_options.add_widget(Button(text='Opción 1',
-                                                  size_hint_y=None,
-                                                  height=40))
-        self.modulacion_options.add_widget(Button(text='Opción 2',
-                                                  size_hint_y=None,
-                                                  height=40))
-        self.modulacion_options.add_widget(Button(text='Opción 3',
-                                                  size_hint_y=None,
-                                                  height=40))
-        self.modulacion_options.height = 0  # Inicialmente oculto
+# # Calcular la Transformada de Fourier
+# transformada = np.fft.fft(pulso_rectangular)
+# transformada_shift = np.fft.fftshift(transformada)  # Centrar la Transformada de Fourier
+# frecuencias = np.fft.fftfreq(t.shape[-1])
+# frecuencias_shift = np.fft.fftshift(frecuencias)  # Centrar las frecuencias
 
-        # Añadir el menú principal y las opciones de 'Modulación' a un BoxLayout
-        menu_layout = BoxLayout(orientation='vertical')
-        menu_layout.add_widget(main_menu)
-        menu_layout.add_widget(self.modulacion_options)
+# # Crear las gráficas
+# plt.figure()
 
-        # Añadir el BoxLayout al NavigationDrawer
-        navigationdrawer.add_widget(menu_layout)
+# # Gráfica del pulso rectangular
+# plt.subplot(2, 1, 1)
+# plt.plot(t, pulso_rectangular)
+# plt.title('Pulso Rectangular')
 
-        # Crear el área de contenido
-        content_area = BoxLayout(orientation='vertical')
-        content_area.add_widget(Button(text='Contenido',
-                                       on_press=self.toggle_nav_drawer,
-                                       size_hint_y=None,
-                                       height=40))
+# # Gráfica de la Transformada de Fourier
+# plt.subplot(2, 1, 2)
+# plt.plot(frecuencias_shift, np.abs(transformada_shift))
+# plt.title('Transformada de Fourier')
 
-        # Añadir el área de contenido al NavigationDrawer
-        navigationdrawer.add_widget(content_area)
 
-        # Establecer el área de contenido como el panel principal
-        navigationdrawer.anim_type = 'slide_above_anim'
+# plt.tight_layout()
+# plt.show()
 
-        return navigationdrawer
+import numpy as np
+import matplotlib.pyplot as plt
 
-    def toggle_nav_drawer(self, instance):
-        # Alternar la apertura/cierre del NavigationDrawer
-        self.root.toggle_state()
+# Usa tu lista específica de 1s y 0s
+data = np.array([0,0,0,1,0,1,0,0,1,0,1,0,1,0,0,1,0,1,0,1,1,0,0,0,1,1,0,0,1,1,0,0])
 
-    def show_modulacion_options(self, instance):
-        # Mostrar/ocultar las opciones de 'Modulación'
-        if self.modulacion_options.height == 0:
-            self.modulacion_options.height = 80  # Mostrar
-        else:
-            self.modulacion_options.height = 0  # Ocultar
+# Frecuencia del reloj
+frecuencia_reloj = 100  # Ajusta este valor a la frecuencia deseada
 
-MyApp().run()
+# Generar el reloj
+clock = np.array([0, 1] * int(len(data) // frecuencia_reloj))
+
+# Crear la señal digital
+digital_signal = np.zeros((int(data.size * frecuencia_reloj),))
+for i in range(data.size):
+    digital_signal[i*int(frecuencia_reloj):(i+1)*int(frecuencia_reloj)] = data[i]
+
+# Crear el tiempo
+time = np.linspace(0, 1, len(digital_signal), endpoint=False)
+
+# Graficar la señal en el tiempo
+plt.figure(figsize=(12, 6))
+plt.subplot(2, 1, 1)
+plt.plot(time, digital_signal, drawstyle='steps-pre')
+plt.title('Señal en el Tiempo')
+plt.xlabel('Tiempo (s)')
+plt.ylabel('Amplitud')
+
+# Calcular la Transformada de Fourier con más puntos
+num_puntos = 3 * len(digital_signal)  # Ajusta este valor al número de puntos que desees
+transformada = np.fft.fft(digital_signal, n=num_puntos)
+transformada_shift = np.fft.fftshift(transformada)  # Centrar la Transformada de Fourier
+frecuencias = np.fft.fftfreq(num_puntos)
+frecuencias_shift = np.fft.fftshift(frecuencias)  # Centrar las frecuencias
+
+# Graficar el espectro de frecuencia
+plt.subplot(2, 1, 2)
+plt.plot(frecuencias_shift, np.abs(transformada_shift))
+plt.title('Espectro de Frecuencia')
+plt.xlabel('Frecuencia (Hz)')
+plt.ylabel('Amplitud')
+plt.tight_layout()
+plt.show()
+
+
+
+
