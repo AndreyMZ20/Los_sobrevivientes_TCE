@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-def canal(signal, num_puntos, t, f, random_signal, random_phase, random_amp):
+def canal(signal, num_puntos, t, random_signal, random_phase, random_amp):
     entrada = int(input("1.Ruido\n2.Eco\n\nOpcion: "))
     plt.figure(1)
     plt.subplot(3, 1, 1)
@@ -18,21 +18,21 @@ def canal(signal, num_puntos, t, f, random_signal, random_phase, random_amp):
         return senal_con_ruido
     if(entrada == 2):
         if(random_signal):
-            return canal_random(signal,num_puntos,t,f,random_phase,random_amp)
+            return canal_random(signal,num_puntos,t,random_phase,random_amp)
         if(random_signal==False):
-            return canal_manual(signal,num_puntos,t,f)
+            return canal_manual(signal,num_puntos,t)
         else:
             return
     else:
         return
 
-def canal_random(signal, num_puntos, t, f, random_phase, random_amp):
+def canal_random(signal, num_puntos, t, random_phase, random_amp):
     senal_con_eco = np.copy(signal)
     for i in range(len(random_phase)):
         if(random_phase[i]==180):
-            eco = ecos(signal,num_puntos,f,-random_amp[i],0)
+            eco = ecos(signal,num_puntos,-random_amp[i],0)
         else:
-            eco = ecos(signal,num_puntos,f,random_amp[i],random_phase[i])
+            eco = ecos(signal,num_puntos,random_amp[i],random_phase[i])
         senal_con_eco += eco
         plt.plot(t,eco, label="Eco "+str(i+1))
     plt.xlabel('Tiempo')
@@ -42,7 +42,7 @@ def canal_random(signal, num_puntos, t, f, random_phase, random_amp):
     plt.legend() 
     return senal_con_eco
 
-def canal_manual(signal,num_puntos,t,f,):
+def canal_manual(signal,num_puntos,t):
     cantidadEco = int(input("\nCantidad de ecos: "))
     senal_con_eco = np.copy(signal)
     for amp in range(cantidadEco):
@@ -50,9 +50,9 @@ def canal_manual(signal,num_puntos,t,f,):
         grados_retraso = float(input("Desfase en grados de eco "+str(amp+1)+": "))
         amplitud = float(input("Amplitud de eco "+str(amp+1)+": "))
         if (grados_retraso == 180):
-            eco = ecos(signal,num_puntos,f,-amplitud,0)
+            eco = ecos(signal,num_puntos,-amplitud,0)
         else:
-            eco = ecos(signal,num_puntos,f,amplitud,grados_retraso)
+            eco = ecos(signal,num_puntos,amplitud,grados_retraso)
         senal_con_eco += eco
         plt.plot(t,eco, label="Eco "+str(amp+1))
     plt.xlabel('Tiempo')
@@ -62,29 +62,27 @@ def canal_manual(signal,num_puntos,t,f,):
     plt.legend() 
     return senal_con_eco
 
-def ecos(signal,num_puntos,f,amplitud,grados_retraso):
+def ecos(signal,num_puntos,amplitud,grados_retraso):
     radianes_retraso = math.radians(grados_retraso)
-    periodo = 1/f
-    atraso = ((radianes_retraso) / (2 * np.pi )) * periodo
-    muestras_retraso = int(atraso * num_puntos/2)
-    eco = np.roll(signal, int(atraso * muestras_retraso)) * amplitud
+    atraso = ((radianes_retraso) / (2 * np.pi ))
+    muestras_retraso = int(atraso * num_puntos)
+    eco = np.roll(signal, muestras_retraso) * amplitud
     eco[:int(atraso * muestras_retraso)] = 0
     return eco
 
-#Para simular una señal de cosenos alzados 
-
 A = 1          # Amplitud
-n = 4          # Exponente
+n = 1         # Exponente
 f = 1          # Frecuencia en Hz
 phi = 0        # Fase
-num_puntos = 1000
+num_puntos = 100
 # Tiempo
-t = np.linspace(0, 2, num_puntos)  # Generar valores de tiempo de 0 a 2 segundos
+t = np.linspace(0, 1, num_puntos)  # Generar valores de tiempo de 0 a 2 segundos
 
 # Generar la señal de coseno elevado
 cosine_signal = A * np.cos(2 * np.pi * f * t)**n
+print("Tamaño: ",len(cosine_signal)/num_puntos)
 
-noised_signal= canal(cosine_signal, num_puntos, t, f, False,[90,180],[0.1,1])
+noised_signal= canal(cosine_signal, num_puntos, t, True,[170,350],[0.5,0.4])
 
 plt.subplot(3, 1, 2)
 plt.plot(t,cosine_signal)

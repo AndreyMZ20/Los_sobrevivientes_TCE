@@ -29,11 +29,27 @@ def plot_nrz(nrz_encoded, bit_string):
     
     # Mostrar la gráfica
     plt.show()
+    
+    
+
+def nrz_decode(nrz_signal):
+    mapping = {-1: '0', 1: '1'}
+    
+    # Decodificación NRZ y mapeo a bits
+    nrz_decoded = [mapping[bit] for bit in nrz_signal]
+    
+    # Convertir la lista de bits en una cadena y devolverla
+    decoded_bits_string = ''.join(nrz_decoded)
+    return decoded_bits_string
+
+
 
 # Prueba de las funciones
 bit_string = generar_cadena_binaria_aleatoria()
 #bit_string = "11110"
 nrz_encoded = nrz_encode(bit_string)
+decoded_bit_string = nrz_decode(nrz_encoded)
 print(f"Cadena de bits: {bit_string}")
 print(f"Codificación NRZ: {nrz_encoded}")
+print(f"Decodificación NRZ: {decoded_bit_string}")
 plot_nrz(nrz_encoded, bit_string)
