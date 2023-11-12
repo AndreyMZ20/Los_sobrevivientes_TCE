@@ -44,8 +44,8 @@ class HexInput(TextInput):
         super(HexInput, self).__init__(**kwargs)
         self.halign = 'center'
         self.multiline = False
-        self.height = 50  # Ajusta este valor según tus necesidades
-        self.font_size = 30
+        self.height = 40  # Ajusta este valor según tus necesidades
+        self.font_size = 22
         self.size_hint_y = None
         self.size_hint_x = 0.5  # Ajusta este valor a 0.5 para que sea la mitad del ancho de su widget padre
         self.input_class_instance = input_class_instance  # Guarda la referencia al objeto input_class
@@ -88,19 +88,57 @@ class input_class(BoxLayout):
         label1.height = 100  
         self.add_widget(label1)
 
+        # Agregar el Label para mostrar el valor binario
+        self.binary_label = Label(text='Select Modulation', markup=True, font_size=26)
+        self.add_widget(self.binary_label)
+
+        # Crear un GridLayout para contener todos los pares de Label y CheckBox
+        grid = GridLayout(cols=4, spacing=[-50,0])
+
+        # Crear un diccionario para almacenar las instancias de CheckBox y su Label correspondiente
+        self.checkbox_pam = {}
+
+        # Nombres de las opciones
+        opciones = ['2-PAM', '4-PAM']
+
+        for opcion in opciones:
+            # Crear un CheckBox y un Label para cada opción
+            if opcion == '2-PAM':
+                checkbox = CheckBox(group='group2', active=True)
+            else:
+                checkbox = CheckBox(group='group2', active=False)  # Este CheckBox estará desactivado al inicio
+            
+            label = Label(text=opcion, halign='left', valign='middle', font_size=26)
+            label.bind(size=label.setter('text_size'))  # Set 'text_size' to maintain the alignment
+            
+            # Agregar el CheckBox y el Label al GridLayout
+            grid.add_widget(checkbox)
+            grid.add_widget(label)
+
+            # Agregar la instancia de CheckBox y su Label correspondiente al diccionario
+            self.checkbox_pam[checkbox] = label
+
+        # Crear un BoxLayout para centrar el GridLayout
+        box = BoxLayout(orientation='horizontal')
+        box.add_widget(grid)  # Agregar el GridLayout al BoxLayout
+
+        # Agregar el BoxLayout al widget principal
+        self.add_widget(box)
+
+        # Agregar el Label para mostrar el valor binario
+        self.binary_label = Label(text='Welcome! Type the string to modulate', markup=True, font_size=26)
+        self.add_widget(self.binary_label)
+
         # Agregar el TextInput al BoxLayout
         anchor_layout = AnchorLayout(anchor_x='center', anchor_y='center')
         self.hex_input = HexInput(self)
         anchor_layout.add_widget(self.hex_input)
         self.add_widget(anchor_layout)
 
-        # Agregar el Label para mostrar el valor binario
-        self.binary_label = Label(text='Welcome! Type the string to modulate', markup=True, font_size=28)
-        self.add_widget(self.binary_label)
 
         # Agrega el botón al BoxLayout
         anchor_layout = AnchorLayout(anchor_x='center', anchor_y='center')
-        self.my_button = Button(text='Random number', size_hint_x=0.35, size_hint_y=0.55, background_normal='', background_color=(26/255.0, 119/255.0, 177/255.0, 1), font_size=28) 
+        self.my_button = Button(text='Random number', size_hint_x=0.25, size_hint_y=0.55, background_normal='', background_color=(26/255.0, 119/255.0, 177/255.0, 1), font_size=22) 
         self.my_button.bind(on_press=self.generate_random_hex)  # Vincula la función generate_random_hex al botón
         anchor_layout.add_widget(self.my_button)
         self.add_widget(anchor_layout)
@@ -545,78 +583,96 @@ class BottomFrame(BoxLayout):
         #AQUI OCURRE TODA LA MAGIA
 
         textbox_value = self.input_class.hex_input.text
+        # Verifica que el textbox no esté vacío
         if textbox_value == '':
             self.input_class.binary_label.text = '[color=ff0000]ERROR: No data available[/color]'
             Clock.schedule_once(self.reset_label_text, 3)
         else:
-            active_checkbox = next((checkbox for checkbox in self.checkbox_codsimb if checkbox.active), None)
-            if active_checkbox != None:
-                # Si la longitud de hex_string es impar, agrega un '0' a la izquierda
-                textbox_value = complete_byte(textbox_value)
-                # Obtiene el valor del roll-off
-                roll_off = float(self.roll_off.text)
-                # Obtiene el tipo de codificación de símbolos
-                tipo_cod_simb = self.checkbox_codsimb[active_checkbox].text if active_checkbox else None
-                # Convierte el string hexadecimal de la entrada en un string binario
-                bit_string = hex_to_bin(textbox_value)
-                bit_list = np.array([int(bit) for bit in bit_string]) #Convierte el string binario en una lista de bits
-                #Generar codificion de Reed-salamon
-                encoded_reedsolo = encode_with_reedsolo(textbox_value)
-                bit_reedsolo = hex_to_bin(encoded_reedsolo)
-                label_red = label_div_red(bit_reedsolo, bit_string)
-                bit_list_reedsolo = np.array([int(bit) for bit in bit_reedsolo]) #Convierte el string binario en una lista de bits
-                # Codifica el valor del textbox
-                signal = encode(bit_reedsolo, tipo_cod_simb)
-                signal_exp = encode(bit_string, tipo_cod_simb)
-                signal_array = np.array(signal)
-                # Aplica el coseno alzado
-                signal_rcc = cose_alzado_func(roll_off, signal_exp)
-                #GENERAR SEÑALES
-                # Define las tareas que quieres ejecutar en el hilo secundariod
-                tasks = [
-                    lambda *args: graficar_bin(bit_string, "Input signal in bits"),
-                    lambda *args: generar_senal(bit_list, frecuencia_reloj = 100),
-                    lambda *args: graficar_tiempo(args[-1], "Input signal in time (clk = 100 Hz)"),  
-                    lambda *args: graficar_frecuencia(args[-2], "Input signal on frequency (clk = 100 Hz)"),
-                    lambda *args: plot_encod(signal, bit_reedsolo, bit_string, tipo_cod_simb),
-                    lambda *args: generar_senal(signal_array, frecuencia_reloj = 100),
-                    lambda *args: graficar_tiempo(args[-1], "Time-encoded signal (clk = 100 Hz)"),  
-                    lambda *args: graficar_frecuencia(args[-2], "Frequency-encoded signal (clk = 100 Hz)"),
-                    lambda *args: graficar_bin(bit_reedsolo, "Reed Code-Salamon Bits (n=5)", bit_string),
-                    lambda *args: generar_senal(bit_list_reedsolo, frecuencia_reloj = 100),
-                    lambda *args: graficar_tiempo(args[-1], "Reed Code-Salamon in time (clk = 100 Hz, n=5)"), 
-                    lambda *args: graficar_frecuencia(args[-2], "Reed Code-Salamon on frequency (clk = 100 Hz, n=5)"),
-                    lambda *args: graficar_rcc_time(signal_rcc, "Root of raised cosine in time"),  
-                    lambda *args: graficar_frecuencia(signal_rcc, "Root of raised cosine on frequency"),
-                ]
+            # Verifica que el checkbox de mpam este activo
+            active_pam = next((checkbox_pam for checkbox_pam in self.input_class.checkbox_pam if checkbox_pam.active), None)
+            if active_pam != None:
+                # Verifica que el checkbox de codificacion de simbolos este activo
+                active_checkbox = next((checkbox for checkbox in self.checkbox_codsimb if checkbox.active), None)
+                if active_checkbox != None:
+                    # -------------------------------- Validación de la entrada --------------------------------
+                    # Si la longitud de hex_string es impar, agrega un '0' a la izquierda
+                    textbox_value = complete_byte(textbox_value)
+                    # -------------------------------- Codificación de símbolos --------------------------------
+                    # Convierte el string hexadecimal de la entrada en un string binario
+                    bit_string = hex_to_bin(textbox_value)
+                    bit_list = np.array([int(bit) for bit in bit_string]) #Convierte el string binario en una lista de bits
+                    # -------------------------------- Codificación de Reed-Salamon --------------------------------
+                    #Generar codificion de Reed-salamon
+                    encoded_reedsolo = encode_with_reedsolo(textbox_value)
+                    bit_reedsolo = hex_to_bin(encoded_reedsolo)
+                    label_red = label_div_red(bit_reedsolo, bit_string)
+                    bit_list_reedsolo = np.array([int(bit) for bit in bit_reedsolo]) #Convierte el string binario en una lista de bits
+                    # -------------------------------- Codificación de señales --------------------------------
+                    # Obtiene el tipo de modulacion a usar
+                    type_m = self.input_class.checkbox_pam[active_pam].text if active_pam else None
+                    # Obtiene el tipo de codificación de símbolos
+                    tipo_cod_simb = self.checkbox_codsimb[active_checkbox].text if active_checkbox else None
+                    # Codifica el valor del textbox
+                    signal = np.array(encode(bit_reedsolo, tipo_cod_simb, type_m))
+                    signal_exp = np.array(encode(bit_string, tipo_cod_simb, type_m))
+                    # -------------------------------- Aplicar coseno alzado --------------------------------
+                    # Obtiene el valor del roll-off
+                    roll_off = float(self.roll_off.text)
+                    graficar_señales(roll_off, signal_exp)
+                    # Aplica el coseno alzado
+                    signal_rcc = cose_alzado_func(roll_off, signal_exp)
+                    #GENERAR SEÑALES
+                    # Define las tareas que quieres ejecutar en el hilo secundariod
+                    tasks = [
+                        lambda *args: graficar_bin(bit_string, "Input signal in bits"),
+                        lambda *args: generar_senal(bit_list, frecuencia_reloj = 100),
+                        lambda *args: graficar_tiempo(args[-1], "Input signal in time (clk = 100 Hz)"),  
+                        lambda *args: graficar_frecuencia(args[-2], "Input signal on frequency (clk = 100 Hz)"),
+                        lambda *args: plot_encod(signal, bit_reedsolo, bit_string, tipo_cod_simb, type_m),
+                        lambda *args: generar_senal(signal, frecuencia_reloj = 100),
+                        lambda *args: graficar_tiempo(args[-1], "Time-encoded signal (clk = 100 Hz)"),  
+                        lambda *args: graficar_frecuencia(args[-2], "Frequency-encoded signal (clk = 100 Hz)"),
+                        lambda *args: graficar_bin(bit_reedsolo, "Reed Code-Salamon Bits (n=5)", bit_string),
+                        lambda *args: generar_senal(bit_list_reedsolo, frecuencia_reloj = 100),
+                        lambda *args: graficar_tiempo(args[-1], "Reed Code-Salamon in time (clk = 100 Hz, n=5)"), 
+                        lambda *args: graficar_frecuencia(args[-2], "Reed Code-Salamon on frequency (clk = 100 Hz, n=5)"),
+                        lambda *args: graficar_rcc_time(signal_rcc, "Root of raised cosine in time"),  
+                        lambda *args: graficar_frecuencia(signal_rcc, "Root of raised cosine on frequency"),
+                    ]
 
-                # Crea una instancia de LoadingPopup
-                self.popup = LoadingPopup()
+                    # Crea una instancia de LoadingPopup
+                    self.popup = LoadingPopup()
 
-                # Define los mensajes que se mostrarán durante la carga
-                messages = [
-                    "Graphing binary representation...",
-                    "Generating binary input signal...",
-                    "Plotting signal over time with a 100Hz clock...",
-                    "Plotting signal on frequency with a 100Hz clock...",
-                    "Encoding the signal...",
-                    "Generating coded signal...",
-                    "Plotting time-coded signal with a 100Hz clock...",
-                    "Plotting frequency encoded signal with a 100Hz clock...",
-                    "Graphing roots of raised cosines in the time domain...",
-                    "Graphing roots of raised cosines in the frequency domain...",
-                ]
+                    # Define los mensajes que se mostrarán durante la carga
+                    messages = [
+                        "Graphing binary representation...",
+                        "Generating binary input signal...",
+                        "Plotting signal over time with a 100Hz clock...",
+                        "Plotting signal on frequency with a 100Hz clock...",
+                        "Encoding the signal...",
+                        "Generating coded signal...",
+                        "Plotting time-coded signal with a 100Hz clock...",
+                        "Plotting frequency encoded signal with a 100Hz clock...",
+                        "Graphing roots of raised cosines in the time domain...",
+                        "Graphing roots of raised cosines in the frequency domain...",
+                    ]
 
-                # Establecer los mensajes en la instancia de LoadingPopup
-                self.popup.set_messages(messages)
+                    # Establecer los mensajes en la instancia de LoadingPopup
+                    self.popup.set_messages(messages)
 
-                # Llamas al método start de LoadingPopup y le pasas las tareas y la función que quieres ejecutar cuando termine la carga
-                self.popup.start(tasks, lambda *results: self.load_graphics(label_red, *results))
+                    # Llamas al método start de LoadingPopup y le pasas las tareas y la función que quieres ejecutar cuando termine la carga
+                    self.popup.start(tasks, lambda *results: self.load_graphics(label_red, *results))
+
+                else:
+                    self.input_class.binary_label.text = '[color=ff0000]ERROR: Select a binary encoder[/color]'
+                    Clock.schedule_once(self.reset_label_text, 3)
 
             else:
-                self.input_class.binary_label.text = '[color=ff0000]ERROR: Select a binary encoder[/color]'
-                Clock.schedule_once(self.reset_label_text, 3)
-    
+                    self.input_class.binary_label.text = '[color=ff0000]ERROR: Select a M-PAM M[/color]'
+                    Clock.schedule_once(self.reset_label_text, 3)
+
+
+
     # Y finalmente defines el método load_graphics
     def load_graphics(self, label_red, *results):
         # Aquí va el código que quieres ejecutar mientras se muestra la barra de progreso
@@ -632,8 +688,7 @@ class BottomFrame(BoxLayout):
         Window.raise_window()
 
     def reset_label_text(self, dt):
-        if self.input_class.hex_input.text == '':
-            self.input_class.binary_label.text = '[color=ffffff]Type the string to modulate[/color]'
+        self.input_class.binary_label.text = '[color=ffffff]Type the string to modulate[/color]'
 
 #------------------ CLASE RESULTADO ------------------
 
@@ -667,13 +722,13 @@ class ResultScreen(Screen):
         item_result.background_selected = 'results_color.png'
         submenu_result = GridLayout(cols=1)
         kivy_color = hex_to_kivy_color('2E96B5')
-        submenu_result.add_widget(Button(text='General results',
+        submenu_result.add_widget(Button(   text='General results',
                                             on_press=self.on_save_button_press,
                                             size_hint_y=None,
                                             height=40, 
                                             background_normal='', background_color=kivy_color))
         kivy_color = hex_to_kivy_color('2E7FB5')
-        submenu_result.add_widget(Button(text='Data obtained',
+        submenu_result.add_widget(Button(   text='Data obtained',
                                             on_press=self.on_back_button_press,
                                             size_hint_y=None,
                                             height=40,
@@ -871,16 +926,16 @@ class MainScreen(Screen):
         # Crea un GridLayout para contener los widgets
         grid_layout = GridLayout(cols=2, rows=2, spacing=20, padding=[20, 20, 20, 20])   # Ajusta el valor de 'spacing' según necesites
 
-        widget1 = input_class(size_hint=(0.45, 0.45))  # Ajusta esto para cambiar el tamaño del cuadro
+        widget1 = input_class(size_hint=(0.45, 0.45))  
         grid_layout.add_widget(widget1)
 
-        widget2 = Cod_Binaria(size_hint=(0.45, 0.45))  # Ajusta esto para cambiar el tamaño del cuadro
+        widget2 = Cod_Binaria(size_hint=(0.45, 0.45))
         grid_layout.add_widget(widget2)
 
-        widget3 = RCC(size_hint=(0.45, 0.45))  # Ajusta esto para cambiar el tamaño del cuadro
+        widget3 = RCC(size_hint=(0.45, 0.45))
         grid_layout.add_widget(widget3)
 
-        widget4 = Canal(size_hint=(0.45, 0.45))  # Ajusta esto para cambiar el tamaño del cuadro
+        widget4 = Canal(size_hint=(0.45, 0.45))  
         grid_layout.add_widget(widget4)
 
         layout.add_widget(grid_layout) 
