@@ -11,3 +11,17 @@ def energia(signal):
     energia = np.sum(np.square(signal))
     return energia
 
+def BER(senal_original, senal_con_ruido):
+    bits_erroneos = np.sum(senal_original != senal_con_ruido)
+    BER = bits_erroneos / len(senal_original)
+    return BER
+
+def snr(original, ruidosa):
+    potencia_senal_original = np.sum(original**2) / len(original)
+    potencia_senal_ruidosa = np.sum(ruidosa**2) / len(ruidosa)
+    potencia_ruido = potencia_senal_ruidosa - potencia_senal_original
+
+    # Calcular SNR en decibelios (dB)
+    snr = 10 * np.log10(potencia_senal_original / potencia_ruido)
+
+    return snr
