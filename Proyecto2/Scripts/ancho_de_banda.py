@@ -6,3 +6,8 @@ def ancho_de_banda(digital_mysignal, nyqt = 3):
     # Calcular el ancho de banda
     ancho_banda = np.sum(np.abs(fft_resultado) > 0.1 * np.max(np.abs(fft_resultado)))
     return ancho_banda
+
+def energia(signal):
+    energia = np.sum(np.square(signal))
+    return energia
+
